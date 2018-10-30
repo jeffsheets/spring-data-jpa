@@ -71,7 +71,7 @@ enum StoredProcedureAttributeSource {
 					+ method);
 		}
 
-		return new StoredProcedureAttributes(procedureName, null, method.getReturnType(), false);
+		return new StoredProcedureAttributes(procedureName, null, method.getReturnType(), false, procedure.returnResultSets());
 	}
 
 	/**
@@ -122,7 +122,7 @@ enum StoredProcedureAttributeSource {
 			outputParameterTypes.add(method.getReturnType());
 		}
 
-		return new StoredProcedureAttributes(namedStoredProc.name(), outputParameterNames, outputParameterTypes, true);
+		return new StoredProcedureAttributes(namedStoredProc.name(), outputParameterNames, outputParameterTypes, true, procedure.returnResultSets());
 	}
 
 	private List<StoredProcedureParameter> extractOutputParametersFrom(NamedStoredProcedureQuery namedStoredProc) {

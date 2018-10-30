@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
@@ -31,10 +32,13 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.jpa.domain.sample.Dummy;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * Integration tests for JPA 2.1 stored procedure support.
@@ -143,6 +147,25 @@ public class UserRepositoryStoredProcedureTests {
 		assertThat(proc.getOutputParameterValue("res"), is((Object) 2));
 	}
 
+//	@Test // DATAJPA-1092
+//	@Ignore
+//	public void plainJpa21_resultSet() {
+//
+//		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+//
+//		StoredProcedureQuery proc = em.createStoredProcedureQuery("procedure_in1_out0_return_rs_no_update", Dummy.class);
+//		proc.registerStoredProcedureParameter(1, Integer.class, ParameterMode.IN);
+//
+//		proc.setParameter(1, 1);
+//		boolean hasResultSet = proc.execute() || proc.hasMoreResults();
+//		assertThat(hasResultSet, is(true));
+//
+//		List<Dummy> results = proc.getResultList();
+//
+//		assertThat(results.get(0).getName(), is("A"));
+//		assertThat(results, hasSize(3));
+//	}
+
 	@Test // DATAJPA-707
 	@Ignore
 	public void plainJpa21_twoOutParams() {
@@ -175,4 +198,23 @@ public class UserRepositoryStoredProcedureTests {
 		assertThat(proc.getOutputParameterValue("res"), is((Object) 2));
 		assertThat(proc.getOutputParameterValue("res2"), is((Object) 3));
 	}
+
+//	@Test // DATAJPA-1092
+//	@Ignore("NamedStoredProcedure is not supported with REF_CURSOR parameters yet")
+//	public void plainJpa21_resultSetNamedStoredProcedure() {
+//
+//		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+//
+//		StoredProcedureQuery proc = em.createNamedStoredProcedureQuery("Dummy.procedureWith1InputAnd1OutputParameterWithResultSet");
+//		proc.registerStoredProcedureParameter(1, Integer.class, ParameterMode.IN);
+//
+//		proc.setParameter(1, 1);
+//		boolean hasResultSet = proc.execute() || proc.hasMoreResults();
+//		assertThat(hasResultSet, is(true));
+//
+//		List<Dummy> results = proc.getResultList();
+//
+//		assertThat(results.get(0).getName(), is("A"));
+//		assertThat(results, hasSize(3));
+//	}
 }

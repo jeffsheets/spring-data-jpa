@@ -86,14 +86,16 @@ public class StoredProcedureIntegrationTests {
 		repository.adHocProcedureWith1InputAndNoOutputParameter(42);
 	}
 
-	@Test // DATAJPA-652
-	@Ignore(NOT_SUPPORTED)
+	@Test // DATAJPA-652 DATAJPA-1092
 	public void shouldExecuteAdHocProcedureWith1InputAnd1OutputParameterWithResultSet() {
 
 		List<Dummy> dummies = repository.adHocProcedureWith1InputAnd1OutputParameterWithResultSet("FOO");
 
 		assertThat(dummies, is(notNullValue()));
 		assertThat(dummies.size(), is(equalTo(3)));
+		assertThat(dummies.get(0).getName(), is(equalTo("A")));
+		assertThat(dummies.get(1).getName(), is(equalTo("B")));
+		assertThat(dummies.get(2).getName(), is(equalTo("C")));
 	}
 
 	@Test // DATAJPA-652

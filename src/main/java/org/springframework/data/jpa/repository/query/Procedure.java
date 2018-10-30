@@ -51,4 +51,9 @@ public @interface Procedure {
 	 * The name of the outputParameter, defaults to {@code ""}.
 	 */
 	String outputParameterName() default "";
+
+	/**
+	 * True if this Procedure has 1 or more REF_CURSOR result sets, defaults to {@code false}
+	 */
+	boolean returnResultSets() default false;
 }

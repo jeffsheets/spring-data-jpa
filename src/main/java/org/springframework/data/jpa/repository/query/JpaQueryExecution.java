@@ -329,9 +329,8 @@ public abstract class JpaQueryExecution {
 
 			StoredProcedureJpaQuery storedProcedureJpaQuery = (StoredProcedureJpaQuery) jpaQuery;
 			StoredProcedureQuery storedProcedure = storedProcedureJpaQuery.createQuery(values);
-			storedProcedure.execute();
 
-			return storedProcedureJpaQuery.extractOutputValue(storedProcedure);
+			return storedProcedureJpaQuery.extractOutputValue(storedProcedure, storedProcedureJpaQuery.isReturnResultSets());
 		}
 	}
 

@@ -28,6 +28,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -61,6 +62,15 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 		this.procedureAttributes = method.getProcedureAttributes();
 		this.useNamedParameters = useNamedParameters(method);
 
+	}
+
+	/**
+	 * True if this Procedure is flagged to return resultSets
+	 *
+	 * @return
+	 */
+	public boolean isReturnResultSets() {
+		return this.procedureAttributes.isReturnResultSets();
 	}
 
 	/**
@@ -112,22 +122,37 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 	 * @param storedProcedureQuery must not be {@literal null}.
 	 */
 	@Nullable
-	Object extractOutputValue(StoredProcedureQuery storedProcedureQuery) {
-
+	Object extractOutputValue(StoredProcedureQuery storedProcedureQuery, boolean isReturnResultSets) {
 		Assert.notNull(storedProcedureQuery, "StoredProcedureQuery must not be null!");
 
-		if (!procedureAttributes.hasReturnValue()) {
+		boolean hasResultSet = storedProcedureQuery.execute();
+
+		if (!procedureAttributes.hasReturnValue() && !procedureAttributes.isReturnResultSets()) {
 			return null;
 		}
 
-		List<Object> outputValues = IntStream.range(0, procedureAttributes.getOutputParameterNames().size()).mapToObj(i -> {
-			String outputParameterName = procedureAttributes.getOutputParameterNames().get(i);
-			JpaParameters parameters = getQueryMethod().getParameters();
+		List<Object> outputValues = new ArrayList<>();
+		if (procedureAttributes.hasReturnValue()) {
+			outputValues = IntStream.range(0, procedureAttributes.getOutputParameterNames().size()).mapToObj(i -> {
+				String outputParameterName = procedureAttributes.getOutputParameterNames().get(i);
+				JpaParameters parameters = getQueryMethod().getParameters();
 
-			return useNamedParameters && StringUtils.hasText(outputParameterName) ? //
-					storedProcedureQuery.getOutputParameterValue(outputParameterName)
-					: storedProcedureQuery.getOutputParameterValue(parameters.getNumberOfParameters() + i + 1);
-		}).collect(Collectors.toList());
+				return useNamedParameters && StringUtils.hasText(outputParameterName) ? //
+						storedProcedureQuery.getOutputParameterValue(outputParameterName)
+						: storedProcedureQuery.getOutputParameterValue(parameters.getNumberOfParameters() + i + 1);
+			}).collect(Collectors.toList());
+		}
+
+		if (isReturnResultSets) {
+			//Depending on the database, hasResultSet may not be accurate
+			if (!hasResultSet) {
+				hasResultSet = storedProcedureQuery.hasMoreResults();
+			}
+			while (hasResultSet) {
+				outputValues.add(storedProcedureQuery.getResultList());
+				hasResultSet = storedProcedureQuery.hasMoreResults();
+			}
+		}
 
 		return outputValues.size() == 1 ? outputValues.get(0) : outputValues;
 	}
@@ -155,7 +180,12 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 		JpaParameters params = getQueryMethod().getParameters();
 		String procedureName = procedureAttributes.getProcedureName();
 
-		StoredProcedureQuery procedureQuery = getEntityManager().createStoredProcedureQuery(procedureName);
+		StoredProcedureQuery procedureQuery;
+		if (procedureAttributes.isReturnResultSets()) {
+			procedureQuery = getEntityManager().createStoredProcedureQuery(procedureName, Dummy);
+		} else {
+			procedureQuery = getEntityManager().createStoredProcedureQuery(procedureName);
+		}
 
 		for (JpaParameter param : params) {
 

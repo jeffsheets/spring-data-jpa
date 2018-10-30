@@ -43,6 +43,7 @@ class StoredProcedureAttributes {
 	private final String procedureName;
 	private final List<String> outputParameterNames;
 	private final List<Class<?>> outputParameterTypes;
+	private final boolean returnResultSets;
 
 	/**
 	 * Creates a new {@link StoredProcedureAttributes}.
@@ -54,7 +55,22 @@ class StoredProcedureAttributes {
 	 */
 	public StoredProcedureAttributes(String procedureName, @Nullable String outputParameterName,
 			Class<?> outputParameterType, boolean namedStoredProcedure) {
-		this(procedureName, Arrays.asList(outputParameterName), Arrays.asList(outputParameterType), namedStoredProcedure);
+		this(procedureName, outputParameterName, outputParameterType, namedStoredProcedure, false);
+	}
+
+	/**
+	 * Creates a new {@link StoredProcedureAttributes}.
+	 *
+	 * @param procedureName must not be {@literal null}
+	 * @param outputParameterName may be {@literal null}
+	 * @param outputParameterType must not be {@literal null}
+	 * @param namedStoredProcedure
+	 * @param returnResultSets
+	 */
+	public StoredProcedureAttributes(String procedureName, @Nullable String outputParameterName,
+			Class<?> outputParameterType, boolean namedStoredProcedure, boolean returnResultSets) {
+		this(procedureName, Arrays.asList(outputParameterName), Arrays.asList(outputParameterType), namedStoredProcedure,
+				returnResultSets);
 	}
 
 	/**
@@ -67,6 +83,20 @@ class StoredProcedureAttributes {
 	 */
 	public StoredProcedureAttributes(String procedureName, List<String> outputParameterNames,
 			List<Class<?>> outputParameterTypes, boolean namedStoredProcedure) {
+		this(procedureName, outputParameterNames, outputParameterTypes, namedStoredProcedure, false);
+	}
+
+	/**
+	 * Creates a new {@link StoredProcedureAttributes}.
+	 *
+	 * @param procedureName must not be {@literal null}
+	 * @param outputParameterNames may be empty, but not null
+	 * @param outputParameterTypes must not be empty, and cannot be a single element of null
+	 * @param namedStoredProcedure
+	 * @param returnResultSets
+	 */
+	public StoredProcedureAttributes(String procedureName, List<String> outputParameterNames,
+			List<Class<?>> outputParameterTypes, boolean namedStoredProcedure, boolean returnResultSets) {
 
 		Assert.notNull(procedureName, "ProcedureName must not be null!");
 		Assert.notNull(outputParameterNames, "OutputParameterNames must not be null!");
@@ -80,6 +110,7 @@ class StoredProcedureAttributes {
 		}).collect(Collectors.toList());
 		this.outputParameterTypes = outputParameterTypes;
 		this.namedStoredProcedure = namedStoredProcedure;
+		this.returnResultSets = returnResultSets;
 	}
 
 	/**
@@ -119,11 +150,20 @@ class StoredProcedureAttributes {
 	}
 
 	/**
-	 * Returns whether the stored procedure will produce a result.
+	 * True if this Procedure is marked to return the ResultSet cursors
+	 *
+	 * @return
+	 */
+	public boolean isReturnResultSets() {
+		return returnResultSets;
+	}
+
+	/**
+	 * Returns whether the stored procedure has output parameters, but does not count resultSets.
 	 *
 	 * @return
 	 */
 	public boolean hasReturnValue() {
-		return !(outputParameterTypes.size() == 1 && (void.class.equals(outputParameterTypes.get(0)) || Void.class.equals(outputParameterTypes.get(0))));
+		return !(outputParameterTypes.size() == 1 && (returnResultSets || void.class.equals(outputParameterTypes.get(0)) || Void.class.equals(outputParameterTypes.get(0))));
 	}
 }
