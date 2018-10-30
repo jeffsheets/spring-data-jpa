@@ -106,6 +106,14 @@ public class UserRepositoryStoredProcedureTests {
 	}
 
 	@Test // DATAJPA-707
+	public void entityAnnotatedCustomNamedProcedurePlus1IO2TwoOutParamsNamed() {
+
+		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));
+
+		assertThat(repository.entityAnnotatedCustomNamedProcedurePlus1IO2TwoOutParamsNamed(1), contains(2, 3));
+	}
+
+	@Test // DATAJPA-707
 	public void entityAnnotatedCustomNamedProcedurePlus1IO2() {
 
 		assumeTrue(currentEntityManagerIsAJpa21EntityManager(em));

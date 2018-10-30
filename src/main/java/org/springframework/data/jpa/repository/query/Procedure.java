@@ -48,7 +48,14 @@ public @interface Procedure {
 	String name() default "";
 
 	/**
-	 * The name of the outputParameter, defaults to {@code ""}.
+	 * The name of the outputParameter(s), defaults to {@code {}}.
 	 */
-	String outputParameterName() default "";
+	String[] outputParameterName() default {};
+
+	/**
+	 * The type for each output parameter,
+	 * not used for @NamedStoredProcedureQuery,
+	 * only used for adhoc queries
+	 */
+	Class<?>[] outputParameterTypes() default {};
 }

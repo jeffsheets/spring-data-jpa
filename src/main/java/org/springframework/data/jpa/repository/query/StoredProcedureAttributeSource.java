@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.NamedStoredProcedureQueries;
@@ -71,7 +72,23 @@ enum StoredProcedureAttributeSource {
 					+ method);
 		}
 
-		return new StoredProcedureAttributes(procedureName, null, method.getReturnType(), false);
+		List<String> outputParameterNames = new ArrayList<>();
+		List<Class<?>> outputParameterTypes = new ArrayList<>();
+
+		if (procedure.outputParameterName().length == 0) {
+			outputParameterNames.add(null);
+		} else if (procedure.outputParameterName().length == 1) {
+			outputParameterNames.add(procedure.outputParameterName()[0]);
+		} else {
+			Collections.addAll(outputParameterNames, procedure.outputParameterName());
+			Collections.addAll(outputParameterTypes, procedure.outputParameterTypes());
+		}
+
+		if (outputParameterTypes.isEmpty()) {
+			outputParameterTypes.add(method.getReturnType());
+		}
+
+		return new StoredProcedureAttributes(procedureName, outputParameterNames, outputParameterTypes, false);
 	}
 
 	/**
@@ -104,17 +121,20 @@ enum StoredProcedureAttributeSource {
 		List<String> outputParameterNames = new ArrayList<>();
 		List<Class<?>> outputParameterTypes = new ArrayList<>();
 
-		if (!procedure.outputParameterName().isEmpty()) {
+		if (procedure.outputParameterName().length == 1) {
 			// we give the output parameter definition from the @Procedure annotation precedence
-			outputParameterNames.add(procedure.outputParameterName());
+			outputParameterNames.add(procedure.outputParameterName()[0]);
 		} else {
 
 			// try to discover the output parameter
 			List<StoredProcedureParameter> outputParameters = extractOutputParametersFrom(namedStoredProc);
 
 			for (StoredProcedureParameter outputParameter : outputParameters) {
-				outputParameterNames.add(outputParameter.name());
-				outputParameterTypes.add(outputParameter.type());
+				if (procedure.outputParameterName().length == 0 ||
+						Arrays.stream(procedure.outputParameterName()).anyMatch(outputParameter.name()::equals)) {
+					outputParameterNames.add(outputParameter.name());
+					outputParameterTypes.add(outputParameter.type());
+				}
 			}
 		}
 

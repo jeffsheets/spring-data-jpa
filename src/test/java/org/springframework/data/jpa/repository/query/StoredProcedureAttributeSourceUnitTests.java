@@ -244,6 +244,6 @@ public class StoredProcedureAttributeSourceUnitTests {
 		String emProcedureName() default "";
 
 		@AliasFor(annotation = Procedure.class, attribute = "outputParameterName")
-		String outParamName() default "";
+		String[] outParamName() default {};
 	}
 }
